@@ -212,59 +212,165 @@ async function fetchRealWeather() {
     }
 }
 
-/**
- * Fetch real agro news
- */
-async function fetchRealNews() {
-    const rssUrl = 'https://agroportal.ua/rss/news';
-    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}`;
+// ============================================================
+// NEWS ENGINE — Google News RSS via corsproxy.io
+// No API key required. Auto-refresh: every 5 minutes.
+// ============================================================
 
-    try {
-        const response = await fetch(proxyUrl);
-        const data = await response.json();
+const NEWS_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+const CORS_PROXY = 'https://corsproxy.io/?url=';
 
-        if (data.contents) {
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(data.contents, "text/xml");
-            const items = Array.from(xmlDoc.querySelectorAll("item"));
-
-            if (items.length > 0) {
-                const newsItems = items.slice(0, 10).map(item => ({
-                    title: item.querySelector("title")?.textContent,
-                    pubDate: item.querySelector("pubDate")?.textContent,
-                    category: item.querySelector("category")?.textContent || 'Агро'
-                }));
-
-                renderRealNews(newsItems, 'ua-news');
-                renderRealNews(newsItems.slice().reverse().slice(0, 5), 'global-news');
-                return;
-            }
-        }
-        throw new Error('Empty news contents');
-    } catch (error) {
-        console.warn("News API failed. Using static fallback.", error);
-        renderRealNews(uaNewsData.map(n => ({ ...n, pubDate: new Date() })), 'ua-news');
-        renderRealNews(globalNewsData.map(n => ({ ...n, pubDate: new Date() })), 'global-news');
+// Google News RSS — Ukrainian agricultural news
+const UA_NEWS_FEEDS = [
+    {
+        url: 'https://news.google.com/rss/search?q=%D0%B0%D0%B3%D1%80%D0%BE+%D0%A3%D0%BA%D1%80%D0%B0%D1%97%D0%BD%D0%B0&hl=uk&gl=UA&ceid=UA:uk',
+        label: 'Google Агро UA'
+    },
+    {
+        url: 'https://news.google.com/rss/search?q=%D0%B7%D0%B5%D1%80%D0%BD%D0%BE+%D0%B5%D0%BA%D1%81%D0%BF%D0%BE%D1%80%D1%82+%D0%A3%D0%BA%D1%80%D0%B0%D1%97%D0%BD%D0%B0&hl=uk&gl=UA&ceid=UA:uk',
+        label: 'Зерно UA'
+    },
+    {
+        url: 'https://news.google.com/rss/search?q=%D1%81%D1%96%D0%BB%D1%8C%D1%81%D1%8C%D0%BA%D0%B5+%D0%B3%D0%BE%D1%81%D0%BF%D0%BE%D0%B4%D0%B0%D1%80%D1%81%D1%82%D0%B2%D0%BE+%D0%A3%D0%BA%D1%80%D0%B0%D1%97%D0%BD%D0%B0&hl=uk&gl=UA&ceid=UA:uk',
+        label: 'АПК UA'
     }
+];
+
+// Google News RSS — Світові агро новини (українською мовою)
+const WORLD_NEWS_FEEDS = [
+    {
+        url: 'https://news.google.com/rss/search?q=%D1%81%D0%B2%D1%96%D1%82%D0%BE%D0%B2%D0%B8%D0%B9+%D0%B7%D0%B5%D1%80%D0%BD%D0%BE%D0%B2%D0%B8%D0%B9+%D1%80%D0%B8%D0%BD%D0%BE%D0%BA&hl=uk&gl=UA&ceid=UA:uk',
+        label: 'Світовий Ринок'
+    },
+    {
+        url: 'https://news.google.com/rss/search?q=%D0%BA%D0%BE%D0%BC%D0%BE%D0%B4%D0%B8%D1%82%D0%B8+%D1%86%D1%96%D0%BD%D0%B8+%D0%BF%D1%88%D0%B5%D0%BD%D0%B8%D1%86%D1%8F+%D0%BA%D1%83%D0%BA%D1%83%D1%80%D1%83%D0%B4%D0%B7%D0%B0&hl=uk&gl=UA&ceid=UA:uk',
+        label: 'Ціни CBOT'
+    },
+    {
+        url: 'https://news.google.com/rss/search?q=%D0%B5%D0%BA%D1%81%D0%BF%D0%BE%D1%80%D1%82+%D0%B7%D0%B5%D1%80%D0%BD%D0%BE%D0%B2%D0%B8%D1%85+%D1%81%D0%B2%D1%96%D1%82+%D1%81%D1%96%D0%BB%D1%8C%D1%81%D1%8C%D0%BA%D0%B5+%D0%B3%D0%BE%D1%81%D0%BF%D0%BE%D0%B4%D0%B0%D1%80%D1%81%D1%82%D0%B2%D0%BE&hl=uk&gl=UA&ceid=UA:uk',
+        label: 'Світ Агро'
+    }
+];
+
+/**
+ * Fetch one Google News RSS feed through corsproxy.io and
+ * return a normalised array of news items.
+ */
+async function fetchOneFeed(feedObj) {
+    try {
+        const proxyUrl = CORS_PROXY + encodeURIComponent(feedObj.url);
+        const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(8000) });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const text = await res.text();
+
+        // Parse the XML with the browser's native DOMParser
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(text, 'text/xml');
+        const parseErr = xmlDoc.querySelector('parsererror');
+        if (parseErr) throw new Error('XML parse error');
+
+        const items = Array.from(xmlDoc.querySelectorAll('item'));
+        if (!items.length) return [];
+
+        return items.slice(0, 15).map(item => {
+            // Google News wraps the real URL inside <source url="..."> or
+            // as the href of the first <a> in the description.
+            // The <link> text node is the Google redirect URL — use it as fallback.
+            const rawLink = item.querySelector('link');
+            // <link> is a tricky text-node sibling in RSS; handle both cases
+            const link = (rawLink ? (rawLink.textContent || rawLink.nextSibling && rawLink.nextSibling.nodeValue || '#') : '#').trim();
+
+            // Strip Google's own source tag from the title if present
+            let title = (item.querySelector('title')?.textContent || '').trim();
+            // Remove trailing " - Source Name" injected by Google News
+            title = title.replace(/ - [^-]+$/, '').trim();
+
+            const pubDate = item.querySelector('pubDate')?.textContent?.trim() || new Date().toISOString();
+            const source = item.querySelector('source')?.textContent?.trim() || feedObj.label;
+
+            return { title, pubDate, link, category: feedObj.label, source };
+        }).filter(it => it.title.length > 3);
+    } catch (e) {
+        console.warn('[NEWS] Feed error:', feedObj.label, e.message);
+        return [];
+    }
+}
+
+function formatRelativeTime(pubDateStr) {
+    if (!pubDateStr) return '--:--';
+    const d = new Date(pubDateStr);
+    if (isNaN(d)) return '--:--';
+    const diffMin = Math.round((Date.now() - d) / 60000);
+    if (diffMin < 1) return 'щойно';
+    if (diffMin < 60) return `${diffMin} хв тому`;
+    const diffHr = Math.floor(diffMin / 60);
+    if (diffHr < 24) return `${diffHr} год тому`;
+    return d.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit' });
 }
 
 function renderRealNews(newsItems, containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    container.innerHTML = newsItems.map(item => `
-        <div class="news-item">
+    if (!newsItems.length) {
+        container.innerHTML = '<div class="news-item" style="opacity:0.5;padding:15px;">⚠️ Немає даних від джерел</div>';
+        return;
+    }
+
+    container.innerHTML = newsItems.map(item => {
+        // Sanitise the link so it's safe to inline in onclick
+        const safeLink = (item.link || '#').replace(/'/g, '%27');
+        return `
+        <div class="news-item" onclick="window.open('${safeLink}','_blank')" style="cursor:pointer;">
             <div class="news-meta">
-                <span style="color: var(--accent-red);">${new Date(item.pubDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                <span>• ${item.category || 'NEWS'}</span>
+                <span style="color:var(--accent-red);font-weight:bold;">${formatRelativeTime(item.pubDate)}</span>
+                <span style="opacity:0.7;"> • ${(item.category || item.source || 'NEWS').substring(0, 20).toUpperCase()}</span>
             </div>
             <div class="news-title">${item.title}</div>
             <div class="news-stats">
-                <span>👁 ${Math.floor(Math.random() * 500) + 50}</span>
-                <span>💬 ${Math.floor(Math.random() * 20)}</span>
+                <span style="opacity:0.5;font-size:0.7rem;">${item.source}</span>
             </div>
-        </div>
-    `).join('');
+        </div>`;
+    }).join('');
+}
+
+async function fetchRealNews() {
+    // Fetch UA + World feeds in parallel
+    const [uaResults, worldResults] = await Promise.all([
+        Promise.all(UA_NEWS_FEEDS.map(fetchOneFeed)),
+        Promise.all(WORLD_NEWS_FEEDS.map(fetchOneFeed))
+    ]);
+
+    const uaAll = uaResults.flat()
+        .sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate))
+        .slice(0, 30);
+
+    const worldAll = worldResults.flat()
+        .sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate))
+        .slice(0, 30);
+
+    // Render live data or fall back to static placeholders
+    if (uaAll.length > 0) {
+        renderRealNews(uaAll, 'ua-news');
+    } else {
+        console.warn('[NEWS] No live UA news — using static fallback');
+        renderRealNews(uaNewsData.map(n => ({ ...n, pubDate: new Date() })), 'ua-news');
+    }
+
+    if (worldAll.length > 0) {
+        renderRealNews(worldAll, 'global-news');
+    } else {
+        console.warn('[NEWS] No live World news — using static fallback');
+        renderRealNews(globalNewsData.map(n => ({ ...n, pubDate: new Date() })), 'global-news');
+    }
+
+    // Update counter badges
+    const uaCount = document.getElementById('ua-count');
+    const globalCount = document.getElementById('global-count');
+    if (uaCount) uaCount.textContent = `${uaAll.length} НОВИН`;
+    if (globalCount) globalCount.textContent = `${worldAll.length} НОВИН`;
+
+    console.log(`[NEWS SYNC] UA: ${uaAll.length} | World: ${worldAll.length} | ${new Date().toLocaleTimeString()}`);
 }
 
 /**
@@ -417,6 +523,7 @@ function init() {
 
     setInterval(updateClock, 1000);
     setInterval(updateCountdown, 1000);
+    setInterval(fetchRealNews, NEWS_INTERVAL_MS); // auto-refresh news every 5 min
 }
 
 document.addEventListener('DOMContentLoaded', init);
