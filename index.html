@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AGRO-SYNC Dashboard | Real-time Case IH & Global Agro News</title>
+    <meta name="description"
+        content="Premium real-time agricultural dashboard. Monitor global agro markets, Ukraine crop status, and Case IH FieldOps telemetry in a single integrated command center.">
+    <link rel="stylesheet" href="index.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="dashboard">
+        <header>
+            <div class="brand">
+                <div class="logo">AGRO.CHIKULAY.PRO</div>
+                <div style="color: var(--text-secondary); font-size: 0.9rem; margin-left:10px;">| CASE IH ANALYTICS
+                </div>
+            </div>
+            <div class="status-indicator">
+                <div class="pulse"></div>
+                <span id="update-timer">Оновлення через: 60с</span>
+                <span style="margin-left: 20px;" id="current-time">12:00:00</span>
+            </div>
+        </header>
+
+        <div class="ticker">
+            <div class="ticker-content" id="price-ticker">
+                <div class="ticker-item">Пшениця (CBOT): <span class="ticker-val">$224.50 (+1.2%)</span></div>
+                <div class="ticker-item">Кукурудза (CBOT): <span class="ticker-val">$182.10 (-0.4%)</span></div>
+                <div class="ticker-item">Соняшник (UA): <span class="ticker-val">16,500 UAH (+2.1%)</span></div>
+                <div class="ticker-item">Rapex (Matif): <span class="ticker-val">€445.20 (+0.8%)</span></div>
+                <div class="ticker-item">Добрива NPK: <span class="ticker-val">$720.00 (Stable)</span></div>
+                <div class="ticker-item">Дизельне паливо (UA): <span class="ticker-val">52.40 UAH (-0.1%)</span></div>
+            </div>
+        </div>
+
+        <main class="main-grid" id="main-dashboard-grid">
+            <!-- Ukraine Agro News Column -->
+            <section class="column">
+                <div class="column-header">
+                    <h2>Агро Україна</h2>
+                    <span id="ua-count" style="font-size: 0.7rem; color: var(--accent-red);">LIVE FEED</span>
+                </div>
+                <div class="news-list" id="ua-news">
+                    <!-- Ukraine news items will be injected -->
+                </div>
+            </section>
+
+            <!-- Global Agro News Column -->
+            <section class="column">
+                <div class="column-header">
+                    <h2>Світові Агро Новини</h2>
+                    <span id="global-count" style="font-size: 0.7rem; color: var(--accent-red);">8 НОВИХ</span>
+                </div>
+                <div class="news-list" id="global-news">
+                    <!-- Global news items will be injected -->
+                </div>
+            </section>
+
+            <!-- UA Analytics Column -->
+            <section class="column">
+                <div class="column-header">
+                    <h2>Аналітичний Центр</h2>
+                    <span style="font-size: 0.7rem; color: #00ff00;">REAL-TIME AI</span>
+                </div>
+                <div class="news-list" id="ua-analytics">
+                    <div class="ai-insight-card" id="ai-insight-container">
+                        <!-- AI Recommendation will be injected here -->
+                    </div>
+                    <!-- Analytics widgets will be injected here -->
+                </div>
+            </section>
+
+            <!-- Case IH Column (First 2 machines) -->
+            <section class="column" id="fleet-column">
+                <div class="column-header">
+                    <div>
+                        <h2 style="color: var(--accent-red); margin:0;">CASE IH FLEET</h2>
+                        <span style="font-size: 0.6rem; color: var(--text-secondary);">FIELDOPS™ REAL-TIME</span>
+                    </div>
+                </div>
+                <div id="fleet-top-container" style="display: flex; flex-direction: column; gap: 20px; flex-grow: 1;">
+                    <!-- First 2 machines will be injected here -->
+                </div>
+            </section>
+        </main>
+
+        <!-- Rest of the fleet wrapping in a row -->
+        <div class="fleet-grid" id="fleet-remaining-grid">
+            <!-- Remaining machines will be injected here -->
+        </div>
+
+        <!-- Precision Farming Section -->
+        <section class="precision-section" style="margin-top: 20px;">
+            <div class="column">
+                <div class="column-header">
+                    <h2>Супутниковий Моніторинг (NDVI)</h2>
+                    <span style="font-size: 0.7rem; color: #4cd964;">SAT-LINK ACTIVE</span>
+                </div>
+                <div class="ndvi-map" id="ndvi-map-container">
+                    <img id="ndvi-img" src="" alt="NDVI Map"
+                        style="width: 100%; height: 100%; object-fit: cover; opacity: 0.6;">
+                    <div
+                        style="position: absolute; color: white; font-weight: 800; font-size: 1.2rem; text-shadow: 0 0 10px black;">
+                        KHMELNYTSKYI OBLAST: VEGETATION INDEX
+                    </div>
+                    <div class="ndvi-scale"></div>
+                    <div style="position: absolute; bottom: 35px; right: 20px; font-size: 0.6rem; color: white;">
+                        LOW (STRESS) &larr; &rarr; HIGH (OPTIMAL)
+                    </div>
+                </div>
+            </div>
+            <div class="column">
+                <div class="column-header">
+                    <h2>Погода та Почва</h2>
+                    <span style="font-size: 0.7rem;">SENSORS ON-FIELD</span>
+                </div>
+                <div class="weather-grid" id="weather-widgets">
+                    <!-- Weather widgets will be injected here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- IBONARIUM.AGRO SECTION -->
+        <section class="ibonarium-section" style="margin-top: 40px; margin-bottom: 40px;">
+            <div class="column-header" style="margin-bottom: 20px;">
+                <h2 style="color: var(--accent-red); font-size: 1.5rem; letter-spacing: 2px;">IBONARIUM.AGRO | EXPERT
+                    ANALYTICS</h2>
+                <span style="font-size: 0.7rem; color: var(--text-secondary);">ULTIMATE PRO TERMINAL v4.0</span>
+            </div>
+
+            <div id="ibonarium-app">
+                <aside class="ibon-sidebar">
+                    <div class="ibon-sidebar-header">
+                        <div class="ibon-region-card">
+                            <span class="ibon-region-name" id="ibon-region-name">ВАНТАЖЕННЯ ДАНИХ...</span>
+                            <span id="ibon-clock"
+                                style="font-family: var(--font-main); font-size: 0.8rem; font-weight: 700; color: var(--accent-red);"></span>
+                        </div>
+                    </div>
+
+                    <div class="ibon-data-stream">
+                        <!-- 1. Humanity Analytics Block -->
+                        <div class="ibon-section">
+                            <div class="ibon-label">Експертний статус (Live)</div>
+                            <div class="ibon-insight-grid">
+                                <div class="ibon-insight-card" id="sowing-status"
+                                    style="border-left-color: var(--accent-red)">
+                                    <div class="ibon-insight-title">Статус посіву</div>
+                                    <div class="ibon-insight-status" id="sowing-val">ПРИЗУПИНЕНО</div>
+                                    <div class="ibon-insight-desc" id="sowing-desc">Аналіз термічного стану ґрунту...
+                                    </div>
+                                </div>
+                                <div class="ibon-insight-card" id="protection-status"
+                                    style="border-left-color: #00ff95">
+                                    <div class="ibon-insight-title">Захист рослин</div>
+                                    <div class="ibon-insight-status" id="protection-val">ДОЗВОЛЕНО</div>
+                                    <div class="ibon-insight-desc" id="protection-desc">Швидкість вітру в межах норми.
+                                    </div>
+                                </div>
+                                <div class="ibon-insight-card" id="moisture-status" style="border-left-color: #00e1ff">
+                                    <div class="ibon-insight-title">Дефіцит вологи</div>
+                                    <div class="ibon-insight-status" id="moisture-val">НОРМА</div>
+                                    <div class="ibon-insight-desc" id="moisture-desc">Рівень зволоження стабільний.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. Weather 7-Day Chart -->
+                        <div class="ibon-chart-panel">
+                            <div class="ibon-chart-title"><span>Корреляція Повітря та Ґрунту</span><span
+                                    style="color:var(--text-secondary)">7-DAY TREND</span></div>
+                            <div class="ibon-canvas-wrap"><canvas id="mainChart"></canvas></div>
+                        </div>
+
+                        <!-- 3. Atmospheric Core -->
+                        <div class="ibon-section">
+                            <div class="ibon-label">Атмосферий моніторинг</div>
+                            <div class="ibon-grid" id="atmos-grid"></div>
+                        </div>
+
+                        <!-- 4. Deep Soil -->
+                        <div class="ibon-section">
+                            <div class="ibon-label">Стан ґрунту (Профіль)</div>
+                            <div class="ibon-grid" id="soil-grid"></div>
+                        </div>
+
+                        <!-- 5. Moisture Chart -->
+                        <div class="ibon-chart-panel">
+                            <div class="ibon-chart-title"><span>Вологість за глибиною</span></div>
+                            <div class="ibon-canvas-wrap"><canvas id="soilProfChart"></canvas></div>
+                        </div>
+
+                        <!-- 6. Radiation & Bio -->
+                        <div class="ibon-section">
+                            <div class="ibon-label">Радіаційний баланс та Вегетація</div>
+                            <div class="ibon-grid" id="bio-grid"></div>
+                        </div>
+
+                        <!-- 7. Risk Radar -->
+                        <div class="ibon-chart-panel">
+                            <div class="ibon-chart-title"><span>Радар агро-ризиків</span></div>
+                            <div class="ibon-canvas-wrap"><canvas id="radarChart"></canvas></div>
+                        </div>
+
+                        <!-- 8. Agronomic Indices -->
+                        <div class="ibon-section">
+                            <div class="ibon-label">Агрономічні індекси (Derived)</div>
+                            <div class="ibon-grid" id="agro-indices-grid"></div>
+                        </div>
+                    </div>
+                </aside>
+
+                <main class="ibon-map-panel">
+                    <div id="ibon-map"></div>
+                    <div class="ibon-map-tools">
+                        <button class="ibon-btn-main" onclick="resetToUkraine()">Вся Україна</button>
+                    </div>
+                </main>
+            </div>
+        </section>
+    </div>
+
+    <!-- Order Modal -->
+    <div id="order-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeOrderModal()">&times;</button>
+            <h2 style="color: var(--accent-red); margin-bottom: 5px;">ЗАЯВКА НА ТЕХНІКУ</h2>
+            <h3 id="modal-machine-title" style="margin-bottom: 20px; font-weight: 300;">Machine Name</h3>
+
+            <form id="order-form" action="https://formsubmit.co/2294598@gmail.com" method="POST">
+                <!-- Honey pot to prevent spam -->
+                <input type="text" name="_honey" style="display:none">
+                <!-- Disable Captcha -->
+                <input type="hidden" name="_captcha" value="false">
+                <!-- Redirect after submission -->
+                <input type="hidden" name="_next" value="https://agro-case-hub.pro/">
+
+                <input type="hidden" name="Машина" id="hidden-machine-name" value="">
+
+                <div class="form-group">
+                    <label>Ваше ім'я</label>
+                    <input type="text" name="Ім'я" placeholder="Введіть ваше ім'я" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Номер телефону</label>
+                    <input type="tel" name="Телефон" placeholder="+380" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Ваше запитання</label>
+                    <textarea name="Повідомлення" rows="4" placeholder="Напишіть ваші запитання тут..."></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn">ВІДПРАВИТИ ЗАЯВКУ</button>
+            </form>
+        </div>
+    </div>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
