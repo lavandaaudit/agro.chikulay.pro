@@ -50,7 +50,7 @@ const caseFleetData = [
         fuel: "15%",
         speed: "30 км/год",
         productivity: "CLEANING...",
-        img: "quadtrac_715.jpg",
+        img: "Axial-Flow.jpg",
         price: "$650,000",
         desc: "Легендарна однороторна технологія Axial-Flow у поєднанні з автоматизацією Harvest Command. Мінімум пошкоджень зерна та максимальна пропускна здатність при збиранні будь-яких культур."
     },
@@ -61,7 +61,7 @@ const caseFleetData = [
         fuel: "100%",
         speed: "40 км/год",
         productivity: "LOADER READY",
-        img: "puma_260.jpg",
+        img: "Farmall.jpg",
         price: "$95,000",
         desc: "Універсальний помічник на фермі. Економічний, маневрений та надійний трактор, що ідеально підходить для роботи з навантажувачем, тваринництва та загальногосподарських завдань."
     }
