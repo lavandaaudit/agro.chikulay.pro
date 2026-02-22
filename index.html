@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AGRO-SYNC Dashboard | Real-time Case IH & Global Agro News</title>
+    <meta name="description"
+        content="Premium real-time agricultural dashboard. Monitor global agro markets, Ukraine crop status, and Case IH FieldOps telemetry in a single integrated command center.">
+    <link rel="stylesheet" href="index.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="dashboard">
+        <header>
+            <div class="brand">
+                <div class="logo">AGRO.CHIKULAY.PRO</div>
+                <div style="color: var(--text-secondary); font-size: 0.9rem; margin-left:10px;">| CASE IH ANALYTICS
+                </div>
+            </div>
+            <div class="status-indicator">
+                <div class="pulse"></div>
+                <span id="update-timer">Оновлення через: 60с</span>
+                <span style="margin-left: 20px;" id="current-time">12:00:00</span>
+            </div>
+        </header>
+
+        <div class="ticker">
+            <div class="ticker-content" id="price-ticker">
+                <div class="ticker-item">Пшениця (CBOT): <span class="ticker-val">$224.50 (+1.2%)</span></div>
+                <div class="ticker-item">Кукурудза (CBOT): <span class="ticker-val">$182.10 (-0.4%)</span></div>
+                <div class="ticker-item">Соняшник (UA): <span class="ticker-val">16,500 UAH (+2.1%)</span></div>
+                <div class="ticker-item">Rapex (Matif): <span class="ticker-val">€445.20 (+0.8%)</span></div>
+                <div class="ticker-item">Добрива NPK: <span class="ticker-val">$720.00 (Stable)</span></div>
+                <div class="ticker-item">Дизельне паливо (UA): <span class="ticker-val">52.40 UAH (-0.1%)</span></div>
+            </div>
+        </div>
+
+        <main class="main-grid" id="main-dashboard-grid">
+            <!-- Ukraine Agro News Column -->
+            <section class="column">
+                <div class="column-header">
+                    <h2>Агро Україна</h2>
+                    <span id="ua-count" style="font-size: 0.7rem; color: var(--accent-red);">LIVE FEED</span>
+                </div>
+                <div class="news-list" id="ua-news">
+                    <!-- Ukraine news items will be injected -->
+                </div>
+            </section>
+
+            <!-- Global Agro News Column -->
+            <section class="column">
+                <div class="column-header">
+                    <h2>Світові Агро Новини</h2>
+                    <span id="global-count" style="font-size: 0.7rem; color: var(--accent-red);">8 НОВИХ</span>
+                </div>
+                <div class="news-list" id="global-news">
+                    <!-- Global news items will be injected -->
+                </div>
+            </section>
+
+            <!-- UA Analytics Column -->
+            <section class="column">
+                <div class="column-header">
+                    <h2>Аналітичний Центр</h2>
+                    <span style="font-size: 0.7rem; color: #00ff00;">REAL-TIME AI</span>
+                </div>
+                <div class="news-list" id="ua-analytics">
+                    <div class="ai-insight-card" id="ai-insight-container">
+                        <!-- AI Recommendation will be injected here -->
+                    </div>
+                    <!-- Analytics widgets will be injected here -->
+                </div>
+            </section>
+
+            <!-- Case IH Column (First 2 machines) -->
+            <section class="column" id="fleet-column">
+                <div class="column-header">
+                    <div>
+                        <h2 style="color: var(--accent-red); margin:0;">CASE IH FLEET</h2>
+                        <span style="font-size: 0.6rem; color: var(--text-secondary);">FIELDOPS™ REAL-TIME</span>
+                    </div>
+                </div>
+                <div id="fleet-top-container" style="display: flex; flex-direction: column; gap: 20px; flex-grow: 1;">
+                    <!-- First 2 machines will be injected here -->
+                </div>
+            </section>
+        </main>
+
+        <!-- Rest of the fleet wrapping in a row -->
+        <div class="fleet-grid" id="fleet-remaining-grid">
+            <!-- Remaining machines will be injected here -->
+        </div>
+
+        <!-- Precision Farming Section -->
+        <section class="precision-section" style="margin-top: 20px;">
+            <div class="column">
+                <div class="column-header">
+                    <h2>Супутниковий Моніторинг (NDVI)</h2>
+                    <span style="font-size: 0.7rem; color: #4cd964;">SAT-LINK ACTIVE</span>
+                </div>
+                <div class="ndvi-map" id="ndvi-map-container">
+                    <img id="ndvi-img" src="" alt="NDVI Map"
+                        style="width: 100%; height: 100%; object-fit: cover; opacity: 0.6;">
+                    <div
+                        style="position: absolute; color: white; font-weight: 800; font-size: 1.2rem; text-shadow: 0 0 10px black;">
+                        KHMELNYTSKYI OBLAST: VEGETATION INDEX
+                    </div>
+                    <div class="ndvi-scale"></div>
+                    <div style="position: absolute; bottom: 35px; right: 20px; font-size: 0.6rem; color: white;">
+                        LOW (STRESS) &larr; &rarr; HIGH (OPTIMAL)
+                    </div>
+                </div>
+            </div>
+            <div class="column">
+                <div class="column-header">
+                    <h2>Погода та Почва</h2>
+                    <span style="font-size: 0.7rem;">SENSORS ON-FIELD</span>
+                </div>
+                <div class="weather-grid" id="weather-widgets">
+                    <!-- Weather widgets will be injected here -->
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Order Modal -->
+    <div id="order-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeOrderModal()">&times;</button>
+            <h2 style="color: var(--accent-red); margin-bottom: 5px;">ЗАЯВКА НА ТЕХНІКУ</h2>
+            <h3 id="modal-machine-title" style="margin-bottom: 20px; font-weight: 300;">Machine Name</h3>
+
+            <form id="order-form" action="https://formsubmit.co/2294598@gmail.com" method="POST">
+                <!-- Honey pot to prevent spam -->
+                <input type="text" name="_honey" style="display:none">
+                <!-- Disable Captcha -->
+                <input type="hidden" name="_captcha" value="false">
+                <!-- Redirect after submission -->
+                <input type="hidden" name="_next" value="https://agro-case-hub.pro/">
+
+                <input type="hidden" name="Машина" id="hidden-machine-name" value="">
+
+                <div class="form-group">
+                    <label>Ваше ім'я</label>
+                    <input type="text" name="Ім'я" placeholder="Введіть ваше ім'я" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Номер телефону</label>
+                    <input type="tel" name="Телефон" placeholder="+380" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Ваше запитання</label>
+                    <textarea name="Повідомлення" rows="4" placeholder="Напишіть ваші запитання тут..."></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn">ВІДПРАВИТИ ЗАЯВКУ</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
